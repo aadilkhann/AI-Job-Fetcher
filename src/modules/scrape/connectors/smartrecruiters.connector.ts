@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
+import { request } from 'undici';
+import { stripHtml } from '../../../common/utils/html';
 import { ScraperConnector, CanonicalJob } from './connector.interface';
 
 /**
@@ -32,11 +34,9 @@ export class SmartRecruitersConnector implements ScraperConnector {
     let offset = 0;
     const limit = 100;
 
-    const { default: undici } = await import('undici');
-
     while (true) {
       const apiUrl = `https://api.smartrecruiters.com/v1/companies/${companyId}/postings?limit=${limit}&offset=${offset}`;
-      const res = await undici.request(apiUrl, {
+      const res = await request(apiUrl, {
         method: 'GET',
         headers: { 'User-Agent': this.userAgent },
       });
@@ -58,7 +58,7 @@ export class SmartRecruitersConnector implements ScraperConnector {
           locationText: j.location?.city
             ? `${j.location.city}, ${j.location.country}`
             : null,
-          descriptionText: this.stripHtml(desc),
+          descriptionText: stripHtml(desc),
           applyUrl: j.applyUrl || j.ref,
           postedDate: j.releasedDate
             ? new Date(j.releasedDate).toISOString().split('T')[0]
@@ -82,9 +82,5 @@ export class SmartRecruitersConnector implements ScraperConnector {
   private extractCompanyId(url: string): string | null {
     const match = url.match(/smartrecruiters\.com\/([a-zA-Z0-9_-]+)/);
     return match ? match[1] : null;
-  }
-
-  private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }

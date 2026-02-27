@@ -9,9 +9,7 @@ export class MatchingController {
 
   @Get()
   getMatches(@Request() req: any, @Query('limit') limit?: string) {
-    return this.matchingService.getUserMatches(
-      req.user.userId,
-      limit ? parseInt(limit, 10) : 50,
-    );
+    const l = Math.min(Math.max(limit ? parseInt(limit, 10) || 50 : 50, 1), 200);
+    return this.matchingService.getUserMatches(req.user.userId, l);
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { request } from 'undici';
 
 /**
  * Embedding service using Google Gemini API.
@@ -38,12 +39,14 @@ export class EmbeddingService {
     }
 
     const truncated = text.slice(0, 8000);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:embedContent?key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:embedContent`;
 
-    const { default: undici } = await import('undici');
-    const res = await undici.request(url, {
+    const res = await request(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': this.apiKey,
+      },
       body: JSON.stringify({
         model: `models/${this.model}`,
         content: { parts: [{ text: truncated }] },

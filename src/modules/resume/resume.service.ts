@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { createHash } from 'crypto';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+import { existsSync, mkdirSync } from 'fs';
 import * as path from 'path';
 
 import { Resume } from './entities/resume.entity';
@@ -23,8 +24,8 @@ export class ResumeService {
   ) {
     // For personal/local use: store files on disk instead of MinIO
     this.uploadDir = this.config.get('UPLOAD_DIR', './uploads/resumes');
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
+    if (!existsSync(this.uploadDir)) {
+      mkdirSync(this.uploadDir, { recursive: true });
     }
   }
 
@@ -50,7 +51,7 @@ export class ResumeService {
     const ext = path.extname(file.originalname) || '.pdf';
     const filename = `${userId}_${sha256.slice(0, 12)}${ext}`;
     const filePath = path.join(this.uploadDir, filename);
-    fs.writeFileSync(filePath, file.buffer);
+    await fs.writeFile(filePath, file.buffer);
 
     const resume = this.resumeRepo.create({
       userId,

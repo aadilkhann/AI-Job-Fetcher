@@ -9,6 +9,7 @@ import { EmailService } from './email.service';
 import { User } from '../users/entities/user.entity';
 import { Job as JobEntity } from '../jobs/entities/job.entity';
 import { JobMatch } from '../matching/entities/job-match.entity';
+import { isSafeUrl } from '../../common/utils/html';
 
 @Injectable()
 export class NotifyService {
@@ -161,14 +162,19 @@ export class NotifyService {
     await this.notifRepo.save(notif);
   }
 
+  private safeApplyUrl(url: string): string {
+    return isSafeUrl(url) ? url : '#';
+  }
+
   private buildRealtimeHtml(job: JobEntity): string {
+    const safeUrl = this.safeApplyUrl(job.applyUrl);
     return `
       <div style="font-family: sans-serif; max-width: 600px;">
         <h2>New Job Match!</h2>
         <h3>${this.escapeHtml(job.title)}</h3>
         <p><strong>Location:</strong> ${this.escapeHtml(job.locationText ?? 'Not specified')}</p>
         <p>${this.escapeHtml((job.descriptionText ?? '').slice(0, 300))}...</p>
-        <p><a href="${this.escapeHtml(job.applyUrl)}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Apply Now</a></p>
+        <p><a href="${this.escapeHtml(safeUrl)}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Apply Now</a></p>
       </div>
     `;
   }
@@ -179,7 +185,7 @@ export class NotifyService {
         (j) => `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">
-            <a href="${this.escapeHtml(j.applyUrl)}">${this.escapeHtml(j.title)}</a>
+            <a href="${this.escapeHtml(this.safeApplyUrl(j.applyUrl))}">${this.escapeHtml(j.title)}</a>
           </td>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">
             ${this.escapeHtml(j.locationText ?? 'N/A')}

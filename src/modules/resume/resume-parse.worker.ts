@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 
 import { ResumeService } from './resume.service';
 
@@ -26,7 +26,7 @@ export class ResumeParseWorker extends WorkerHost {
     }
 
     try {
-      const buffer = fs.readFileSync(resume.fileUrl);
+      const buffer = await fs.readFile(resume.fileUrl);
       let text: string;
 
       if (

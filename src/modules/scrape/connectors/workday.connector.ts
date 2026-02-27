@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
+import { request } from 'undici';
 import { ScraperConnector, CanonicalJob } from './connector.interface';
 
 /**
@@ -35,10 +36,8 @@ export class WorkdayConnector implements ScraperConnector {
     let offset = 0;
     const limit = 20;
 
-    const { default: undici } = await import('undici');
-
     while (true) {
-      const res = await undici.request(searchUrl, {
+      const res = await request(searchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

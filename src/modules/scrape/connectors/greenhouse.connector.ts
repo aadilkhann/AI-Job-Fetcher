@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
+import { request } from 'undici';
+import { stripHtml } from '../../../common/utils/html';
 import {
   ScraperConnector,
   CanonicalJob,
@@ -39,8 +41,7 @@ export class GreenhouseConnector implements ScraperConnector {
 
     const apiUrl = `https://boards-api.greenhouse.io/v1/boards/${boardToken}/jobs?content=true`;
 
-    const { default: undici } = await import('undici');
-    const res = await undici.request(apiUrl, {
+    const res = await request(apiUrl, {
       method: 'GET',
       headers: { 'User-Agent': this.userAgent },
     });
@@ -58,7 +59,7 @@ export class GreenhouseConnector implements ScraperConnector {
         sourceJobUrl: j.absolute_url || `https://boards.greenhouse.io/${boardToken}/jobs/${j.id}`,
         title: j.title,
         locationText: j.location?.name || null,
-        descriptionText: this.stripHtml(desc),
+        descriptionText: stripHtml(desc),
         applyUrl: j.absolute_url || `https://boards.greenhouse.io/${boardToken}/jobs/${j.id}`,
         postedDate: j.updated_at ? j.updated_at.split('T')[0] : null,
         companyName: body.name || boardToken,
@@ -79,9 +80,5 @@ export class GreenhouseConnector implements ScraperConnector {
       /greenhouse\.io\/(?:v1\/boards\/)?([a-zA-Z0-9_-]+)/,
     );
     return match ? match[1] : null;
-  }
-
-  private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }

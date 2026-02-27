@@ -12,9 +12,8 @@ export class JobsController {
     @Query('days') days?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.jobsService.getRecentJobs(
-      days ? parseInt(days, 10) : 7,
-      limit ? parseInt(limit, 10) : 100,
-    );
+    const d = Math.min(Math.max(days ? parseInt(days, 10) || 7 : 7, 1), 90);
+    const l = Math.min(Math.max(limit ? parseInt(limit, 10) || 100 : 100, 1), 500);
+    return this.jobsService.getRecentJobs(d, l);
   }
 }

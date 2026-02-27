@@ -61,12 +61,20 @@ export class JobsService {
     }
 
     const job = this.jobRepo.create({
-      ...dto,
+      sourceId: dto.sourceId,
+      externalJobId: dto.externalJobId,
+      sourceJobUrl: dto.sourceJobUrl,
+      companyId: dto.companyId,
+      title: dto.title,
+      locationText: dto.locationText,
+      descriptionText: dto.descriptionText,
+      applyUrl: dto.applyUrl,
+      contentHash: dto.contentHash,
       postedDate: dto.postedDate ? new Date(dto.postedDate) : undefined,
       firstSeenAt: now,
       lastSeenAt: now,
       status: 'active',
-    } as any) as unknown as Job;
+    });
     await this.jobRepo.save(job);
     this.logger.log(`New job: ${job.title} [${job.externalJobId}]`);
     return { job, isNew: true };
@@ -109,5 +117,9 @@ export class JobsService {
 
   async getSourceByName(name: string): Promise<Source | null> {
     return this.sourceRepo.findOne({ where: { name } });
+  }
+
+  async findById(id: string): Promise<Job | null> {
+    return this.jobRepo.findOne({ where: { id } });
   }
 }

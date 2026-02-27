@@ -47,11 +47,11 @@ export class CompaniesService {
 
     const target = this.targetRepo.create({
       userId,
-      companyId: company?.id ?? undefined,
+      companyId: company?.id,
       careerUrl: dto.careerUrl,
-      sourceHint: dto.sourceHint ?? undefined,
-    } as any) as unknown as UserCompanyTarget;
-    return this.targetRepo.save(target) as unknown as Promise<UserCompanyTarget>;
+      sourceHint: dto.sourceHint,
+    });
+    return this.targetRepo.save(target);
   }
 
   async listTargets(userId: string): Promise<UserCompanyTarget[]> {

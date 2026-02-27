@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
+import { request } from 'undici';
 import {
   ScraperConnector,
   CanonicalJob,
@@ -33,8 +34,7 @@ export class AshbyConnector implements ScraperConnector {
 
     const apiUrl = `https://api.ashbyhq.com/posting-api/job-board/${board}`;
 
-    const { default: undici } = await import('undici');
-    const res = await undici.request(apiUrl, {
+    const res = await request(apiUrl, {
       method: 'GET',
       headers: { 'User-Agent': this.userAgent },
     });

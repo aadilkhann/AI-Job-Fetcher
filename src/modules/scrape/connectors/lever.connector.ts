@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
+import { request } from 'undici';
+import { stripHtml } from '../../../common/utils/html';
 import {
   ScraperConnector,
   CanonicalJob,
@@ -33,8 +35,7 @@ export class LeverConnector implements ScraperConnector {
 
     const apiUrl = `https://api.lever.co/v0/postings/${company}?mode=json`;
 
-    const { default: undici } = await import('undici');
-    const res = await undici.request(apiUrl, {
+    const res = await request(apiUrl, {
       method: 'GET',
       headers: { 'User-Agent': this.userAgent },
     });
@@ -52,7 +53,7 @@ export class LeverConnector implements ScraperConnector {
         sourceJobUrl: j.hostedUrl || `https://jobs.lever.co/${company}/${j.id}`,
         title: j.text,
         locationText: j.categories?.location || null,
-        descriptionText: typeof desc === 'string' ? desc : this.stripHtml(desc),
+        descriptionText: typeof desc === 'string' ? desc : stripHtml(desc),
         applyUrl: j.applyUrl || j.hostedUrl,
         postedDate: j.createdAt
           ? new Date(j.createdAt).toISOString().split('T')[0]
@@ -72,9 +73,5 @@ export class LeverConnector implements ScraperConnector {
   private extractCompany(url: string): string | null {
     const match = url.match(/lever\.co\/([a-zA-Z0-9_-]+)/);
     return match ? match[1] : null;
-  }
-
-  private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }

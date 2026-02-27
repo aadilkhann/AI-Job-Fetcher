@@ -23,11 +23,10 @@ export class JobEmbedWorker extends WorkerHost {
     const { jobId } = job.data;
     this.logger.log(`Embedding job: ${jobId}`);
 
-    // Look up the job from DB (re-use JobsService query)
-    const jobs = await this.jobsService.findJobsWithoutEmbeddings(1);
-    const targetJob = jobs.find((j) => j.id === jobId);
+    // Look up the specific job by ID
+    const targetJob = await this.jobsService.findById(jobId);
 
-    if (!targetJob) {
+    if (!targetJob || targetJob.embedding) {
       // Already embedded or not found
       return;
     }
